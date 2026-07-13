@@ -133,7 +133,10 @@
           "noWatermark": "ohne Wasserzeichen",
           "fileHistory": "Dateiverlauf für 30 Tage"
         },
-        "cta": "Pro abonnieren"
+        "cta": "Pro abonnieren",
+        "comingSoonBadge": "Demnächst",
+        "ctaComingSoon": "Demnächst",
+        "comingSoonNote": "Wir schließen die Zahlungen gerade ab — der Einführungspreis bleibt garantiert, sobald es verfügbar ist."
       },
       "enterprise": {
         "name": "Enterprise",

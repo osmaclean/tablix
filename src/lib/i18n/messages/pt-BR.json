@@ -133,7 +133,10 @@
           "noWatermark": "sem marca d'água",
           "fileHistory": "histórico de arquivos por 30 dias"
         },
-        "cta": "Assinar Pro"
+        "cta": "Assinar Pro",
+        "comingSoonBadge": "Em breve",
+        "ctaComingSoon": "Em breve",
+        "comingSoonNote": "Estamos finalizando os pagamentos — o preço de lançamento fica garantido quando abrir."
       },
       "enterprise": {
         "name": "Enterprise",

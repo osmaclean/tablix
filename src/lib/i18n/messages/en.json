@@ -133,7 +133,10 @@
           "noWatermark": "no watermark",
           "fileHistory": "file history for 30 days"
         },
-        "cta": "Subscribe to Pro"
+        "cta": "Subscribe to Pro",
+        "comingSoonBadge": "Coming soon",
+        "ctaComingSoon": "Coming soon",
+        "comingSoonNote": "We're finalizing payments — the launch price stays guaranteed when it opens."
       },
       "enterprise": {
         "name": "Enterprise",

@@ -2,12 +2,12 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check } from 'lucide-react'
+import { Check, Clock } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useLocale, useLocalizedHref } from '@/lib/i18n'
 import { useReducedMotion } from '@/hooks/use-reduced-motion'
 import { TIMING } from '@/lib/motion'
-import { CONTACT_EMAIL } from '@/lib/constants'
+import { CONTACT_EMAIL, PRO_CHECKOUT_ENABLED } from '@/lib/constants'
 import { Badge } from '@/components/badge'
 import { Button } from '@/components/button'
 import { Card, CardContent } from '@/components/card'
@@ -171,7 +171,14 @@ export function PricingSection({
             </Badge>
           </div>
           <CardContent className="p-5 sm:p-8">
-            <h3 className="text-foreground text-2xl font-bold">{t('pricing.plans.pro.name')}</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-foreground text-2xl font-bold">{t('pricing.plans.pro.name')}</h3>
+              {!PRO_CHECKOUT_ENABLED && (
+                <Badge variant="secondary" className="text-xs">
+                  {t('pricing.plans.pro.comingSoonBadge')}
+                </Badge>
+              )}
+            </div>
             <div className="mt-4">
               <div className="flex items-baseline gap-1">
                 <span className="text-muted-foreground text-sm line-through">
@@ -258,9 +265,29 @@ export function PricingSection({
               </div>
             </div>
 
-            <Button type="button" variant="brand" className="mt-8 h-12 w-full" size="lg">
-              {t('pricing.plans.pro.cta')}
-            </Button>
+            {PRO_CHECKOUT_ENABLED ? (
+              <Button type="button" variant="brand" className="mt-8 h-12 w-full" size="lg">
+                {t('pricing.plans.pro.cta')}
+              </Button>
+            ) : (
+              <div className="mt-8">
+                <button
+                  type="button"
+                  aria-disabled="true"
+                  aria-describedby="pro-coming-soon-note"
+                  className="focus-visible:ring-ring/50 inline-flex h-12 w-full cursor-not-allowed items-center justify-center gap-2 rounded-md border border-teal-700/20 bg-teal-700/10 text-sm font-medium whitespace-nowrap text-teal-800 outline-none focus-visible:ring-[3px] dark:text-teal-300"
+                >
+                  <Clock className="h-4 w-4" aria-hidden="true" />
+                  {t('pricing.plans.pro.ctaComingSoon')}
+                </button>
+                <p
+                  id="pro-coming-soon-note"
+                  className="text-muted-foreground mt-3 text-center text-xs"
+                >
+                  {t('pricing.plans.pro.comingSoonNote')}
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
