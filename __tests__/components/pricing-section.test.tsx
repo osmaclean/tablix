@@ -8,6 +8,14 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { PricingSection } from '@/components/pricing-section'
 
+// Mock useReducedMotion so both branches of the prefersReducedMotion ternary
+// (price motion.div / total motion.p) can be exercised deterministically.
+// Pattern mirrors __tests__/components/pricing/comparison-table.test.tsx.
+let mockReducedMotion = false
+jest.mock('@/hooks/use-reduced-motion', () => ({
+  useReducedMotion: () => mockReducedMotion,
+}))
+
 // Mock framer-motion to avoid animation side-effects in jsdom
 jest.mock('framer-motion', () => ({
   motion: {
@@ -53,6 +61,9 @@ jest.mock('@/lib/i18n', () => ({
         'pricing.plans.pro.features.noWatermark': "Sem marca d'água",
         'pricing.plans.pro.features.fileHistory': 'Histórico de arquivos',
         'pricing.plans.pro.cta': 'Assinar Pro',
+        'pricing.plans.pro.comingSoonBadge': 'Em breve',
+        'pricing.plans.pro.ctaComingSoon': 'Em breve',
+        'pricing.plans.pro.comingSoonNote': 'Estamos finalizando os pagamentos.',
         'pricing.plans.enterprise.name': 'Enterprise',
         'pricing.plans.enterprise.price': 'Sob consulta',
         'pricing.plans.enterprise.period': 'contrato personalizado',
@@ -87,6 +98,10 @@ jest.mock('next/link', () => {
 })
 
 describe('PricingSection', () => {
+  beforeEach(() => {
+    mockReducedMotion = false
+  })
+
   describe('default rendering', () => {
     it('renders the pricing title', () => {
       render(<PricingSection />)
@@ -239,6 +254,36 @@ describe('PricingSection', () => {
     })
   })
 
+  describe('reduced motion — prefersReducedMotion branches on price elements', () => {
+    it('price motion.div still renders the price when reduced motion is off (default)', () => {
+      // mockReducedMotion = false via beforeEach — exercises the `{ initial, animate, exit, transition }` branch
+      render(<PricingSection />)
+      expect(screen.getByText(/29,90/)).toBeInTheDocument()
+    })
+
+    it('price motion.div still renders the price when reduced motion is on', () => {
+      mockReducedMotion = true
+      // exercises the `{}` (no motion props) branch of the price motion.div ternary
+      render(<PricingSection />)
+      expect(screen.getByText(/29,90/)).toBeInTheDocument()
+    })
+
+    it('total motion.p still renders the total when reduced motion is off and period is not monthly', () => {
+      // mockReducedMotion = false via beforeEach — exercises the `{ initial, animate, exit, transition }` branch
+      render(<PricingSection />)
+      fireEvent.click(screen.getByRole('radio', { name: 'Semestral' }))
+      expect(screen.getByText('Total: R$ 149,40')).toBeInTheDocument()
+    })
+
+    it('total motion.p still renders the total when reduced motion is on and period is not monthly', () => {
+      mockReducedMotion = true
+      // exercises the `{}` (no motion props) branch of the total motion.p ternary
+      render(<PricingSection />)
+      fireEvent.click(screen.getByRole('radio', { name: 'Semestral' }))
+      expect(screen.getByText('Total: R$ 149,40')).toBeInTheDocument()
+    })
+  })
+
   describe('plan cards — all 3 plans rendered', () => {
     it('renders Free plan', () => {
       render(<PricingSection />)
@@ -253,6 +298,66 @@ describe('PricingSection', () => {
     it('renders Enterprise plan', () => {
       render(<PricingSection />)
       expect(screen.getByText('Enterprise')).toBeInTheDocument()
+    })
+  })
+
+  // PRO_CHECKOUT_ENABLED is `false` in src/lib/constants.ts (real, unmocked value here),
+  // so this suite exercises the "coming soon" branch that ships to production today.
+  // The PRO_CHECKOUT_ENABLED === true branch is covered separately in
+  // pricing-section-pro-enabled.test.tsx, which mocks the constants module.
+  describe('Pro CTA — coming soon state (PRO_CHECKOUT_ENABLED=false)', () => {
+    it('renders the "Em breve" badge next to the Pro plan name', () => {
+      render(<PricingSection />)
+      const proHeading = screen.getByText('Pro')
+      const badge = proHeading.parentElement?.querySelector('[data-slot="badge"]')
+      expect(badge).not.toBeNull()
+      expect(badge).toHaveTextContent('Em breve')
+    })
+
+    it('renders the coming-soon CTA button with aria-disabled="true"', () => {
+      render(<PricingSection />)
+      const ctaButton = screen.getByRole('button', { name: 'Em breve' })
+      expect(ctaButton).toHaveAttribute('aria-disabled', 'true')
+    })
+
+    it('coming-soon CTA button has aria-describedby pointing to the note id', () => {
+      render(<PricingSection />)
+      const ctaButton = screen.getByRole('button', { name: 'Em breve' })
+      expect(ctaButton).toHaveAttribute('aria-describedby', 'pro-coming-soon-note')
+    })
+
+    it('renders the coming-soon note with the exact id referenced by aria-describedby', () => {
+      const { container } = render(<PricingSection />)
+      const note = container.querySelector('#pro-coming-soon-note')
+      expect(note).not.toBeNull()
+      expect(note?.tagName).toBe('P')
+      expect(note).toHaveTextContent('Estamos finalizando os pagamentos.')
+    })
+
+    it('coming-soon CTA button renders the Clock icon', () => {
+      render(<PricingSection />)
+      const ctaButton = screen.getByRole('button', { name: 'Em breve' })
+      expect(ctaButton.querySelector('svg')).not.toBeNull()
+    })
+
+    it('does NOT render the clickable "Assinar Pro" subscribe button', () => {
+      render(<PricingSection />)
+      expect(screen.queryByText('Assinar Pro')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Assinar Pro' })).not.toBeInTheDocument()
+    })
+
+    it('coming-soon CTA button is a plain <button>, not the Button component (no data-slot)', () => {
+      render(<PricingSection />)
+      const ctaButton = screen.getByRole('button', { name: 'Em breve' })
+      // The Button component always renders data-slot="button" (see src/components/button.tsx).
+      // The coming-soon CTA is a raw <button>, so this attribute must be absent.
+      expect(ctaButton).not.toHaveAttribute('data-slot')
+      expect(ctaButton.className).not.toContain('hover:bg-teal-800')
+    })
+
+    it('exactly two elements render the "Em breve" copy (badge + CTA label)', () => {
+      render(<PricingSection />)
+      expect(screen.getAllByText('Em breve')).toHaveLength(2)
     })
   })
 })

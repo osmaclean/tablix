@@ -133,7 +133,10 @@
           "noWatermark": "sans filigrane",
           "fileHistory": "historique des fichiers pendant 30 jours"
         },
-        "cta": "S'abonner à Pro"
+        "cta": "S'abonner à Pro",
+        "comingSoonBadge": "Bientôt",
+        "ctaComingSoon": "Bientôt disponible",
+        "comingSoonNote": "Nous finalisons les paiements — le prix de lancement reste garanti à l'ouverture."
       },
       "enterprise": {
         "name": "Entreprise",
