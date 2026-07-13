@@ -133,7 +133,10 @@
           "noWatermark": "无水印",
           "fileHistory": "文件历史保留 30 天"
         },
-        "cta": "订阅专业版"
+        "cta": "订阅专业版",
+        "comingSoonBadge": "即将推出",
+        "ctaComingSoon": "即将开放",
+        "comingSoonNote": "我们正在完善支付流程——开放后首发价格依然有效。"
       },
       "enterprise": {
         "name": "企业版",
